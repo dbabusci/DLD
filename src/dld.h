@@ -2,6 +2,8 @@
 #define DLD_H
 
 #include <iostream>
+#include <cstdlib>
+#include <algorithm>
 #include <filesystem>
 #include <vector>
 #include <string>
@@ -16,10 +18,11 @@ public:
   void                      printHelp    ();
   std::vector<std::string>  findAll      ();
   std::string               findLatest   ();
-  void                      breakFormat  (std::string filename);
+  void                      breakFormat  (std::string fileName);
   bool                      isDeb        (std::filesystem::directory_entry e);
+  std::string               reverse      (std::string& s);
 private:
-  const std::string _command = "sudo apt install ./";
+  const std::string _cmd = "sudo apt install ./";
   std::filesystem::path _cwd;
 };
 

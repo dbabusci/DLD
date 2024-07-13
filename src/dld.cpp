@@ -11,14 +11,18 @@ DLD::DLD(std::filesystem::path cwd) {
 Install latest deb
 */
 void DLD::installLatest() {
-
+  std::system((_cmd + findLatest()).c_str());
 }
 
 /*
 Installs all deb
 */
 void DLD::installAll() {
-  
+  std::vector<std::string> debList = findAll();
+  for(std::string s : debList) {
+    breakFormat(s);
+    std::system((_cmd + findLatest()).c_str());
+  }
 }
 
 /*
@@ -46,7 +50,7 @@ void DLD::printHelp() {
   std::cout << "\tNo options -> Downloads most recently downloaded .deb" << std::endl;
   std::cout << "\t-a         -> Downloads all .deb files in the current directory" << std::endl;
   std::cout << "\t-d         -> Prints out the most recently downloaded .deb" << std::endl;
-  std::cout << "\t-t         -> Prints out all the .debs in the current directory" << std::endl;
+  std::cout << "\t-l         -> Prints out all the .debs in the current directory" << std::endl;
   std::cout << "\t-h         -> Prints out options that are availiable" << std::endl;
 }
 
@@ -54,12 +58,20 @@ void DLD::printHelp() {
 Find all of the debs in cwd
 */
 std::vector<std::string> DLD::findAll() {
-  vector<std::string> debList;
+  std::vector<std::string> debList;
+  std::string temp = "";
+  std::string retTemp = "";
+  auto it = temp.end();
   for(const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(_cwd)) {
-    if(entry.is_regular_file) {
-      if(isDeb(entry)) {
-	debList.push(entry.path.string());
+    if(entry.is_regular_file() && isDeb(entry)) {
+      temp = entry.path().string();
+      it = temp.end();
+      while(it != temp.begin() && *it != '/') {
+	 retTemp += *it;
+	--it;
       }
+      debList.push_back(reverse(retTemp));
+      retTemp = "";
     }
   }
   return debList;
@@ -69,27 +81,47 @@ std::vector<std::string> DLD::findAll() {
 Find the latest deb
 */
 std::string DLD::findLatest() {
-  std::filesystem::directory_entry recent = nullptr;
+  std::filesystem::directory_entry recent;
   for(const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(_cwd)) {
-    if(entry.is_regular_file()) {
-      if(isDeb(entry)) {
-	if(recent == nullptr || recent.last_write_time < entry.last_write_time) {
-	  recent = entry;
-	}
+    if(entry.is_regular_file() && isDeb(entry)) {
+      if(recent.path().empty() || recent.last_write_time() < entry.last_write_time()) {
+	recent = entry;
       }
     }
   }
-  return recent.string();
+  std::string p = recent.path().string();
+  std::string ret = "";
+  auto it = p.end();
+  while(it != p.begin() && *it != '/') {
+    ret += *it;
+    --it;
+  }
+  return reverse(ret);
 }
 
 /*
 Break formatter
 */
-void DLD::breakFormat(std::string filename) {
-  
+void DLD::breakFormat(std::string fileName) {
+  std::cout << "=================================================" << std::endl; //50 long
+  std::cout << std::endl;
+  std::cout << fileName << std::endl;
+  std::cout << std::endl;
+  std::cout << "=================================================" << std::endl;
 }
 
 bool DLD::isDeb(std::filesystem::directory_entry e) {
-  std::string path = e.path.string();
-  return path.substring(path.size() - 4, 4) == ".deb";
+  std::string p = e.path().string();
+  return p.substr(p.size() - 4, 4) == ".deb";
+}
+
+std::string DLD::reverse(std::string& s) {
+  int start = 0;
+  int end = s.size() - 1;
+  while(start < end) {
+    std::swap(s[start], s[end]);
+    ++start;
+    --end;
+  }
+  return s;
 }

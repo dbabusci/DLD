@@ -3,16 +3,15 @@
 
 int main(int argc, char* argv[]) {
   DLD downloader(std::filesystem::current_path());
-  std::cout << std::filesystem::current_path().string() << std::endl;
   if(argc < 2) {
-    std::cout << "Is working" << std::endl;
+    downloader.installLatest();
   } else {
     std::string option = argv[1];
     if(option == "-a") {
-      std::cout << option << std::endl;
+      downloader.installAll();
     } else if(option == "-d") {
       downloader.printLatest();
-    } else if(option == "-t") {
+    } else if(option == "-l") {
       downloader.printAll();
     } else if(option == "-h") {
       downloader.printHelp();
